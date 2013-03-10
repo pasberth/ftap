@@ -20,8 +20,8 @@ data Options = Options
                , accessToken :: String
                , accessTokenSecret :: String
                , isPrintHomeTimeline :: Bool
+               , statusFormattingFunctions :: [Status -> String]
                }
-             deriving (Show, Eq)
 
 
 main :: IO ()
@@ -42,7 +42,13 @@ optionParser = popular defaultOptions $ \opts ->
       consumerKey = key
     , consumerSecret = scrt
       }) <$ keyword "--consumer-key" <*> argument <*> argument <|>
-  opts { isPrintHomeTimeline = True } <$ keyword "--home-timeline"
+  opts { isPrintHomeTimeline = True } <$ keyword "--home-timeline" <|>
+  opts { statusFormattingFunctions =
+            statusText : statusFormattingFunctions opts } <$
+  keyword "--print-status-text" <|>
+  opts { statusFormattingFunctions =
+            userScreenName . statusUser : statusFormattingFunctions opts } <$
+  keyword "--print-user-screen-name"
   where
     defaultOptions = Options {
         isAuthorize = False
@@ -51,6 +57,7 @@ optionParser = popular defaultOptions $ \opts ->
       , accessToken = error "access token wasn't given."
       , accessTokenSecret = error "access token secret wasn't given."
       , isPrintHomeTimeline = False
+      , statusFormattingFunctions = []
         }
 
 printUsage :: IO ()
@@ -77,6 +84,6 @@ main' opts = do
   let cnsm = mkConsumer (BS.pack $ consumerKey opts) (BS.pack $ consumerSecret opts)
       cred = newCredential (BS.pack $ accessToken opts) (BS.pack $ accessTokenSecret opts)
   json <- fetchHomeTL cnsm cred
-  forM (formatStatuses json) $ \str -> do
+  forM (formatStatuses json (reverse $ statusFormattingFunctions opts)) $ \str -> do
     putStrLn str
   return ()
