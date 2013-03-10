@@ -1,4 +1,4 @@
-B1;2cmodule Ftap.Transfer where
+module Ftap.Transfer where
 
 import Data.Conduit
 import qualified Data.ByteString.Char8 as BS
