@@ -3,6 +3,7 @@
 module Main where
 
 import Control.Applicative
+import Control.Monad
 import System.Console.OptMatch
 import System.Console.OptMatch.Popular
 import System.Environment(getArgs)
@@ -10,6 +11,7 @@ import System.IO(hFlush, stdout)
 import Web.Authenticate.OAuth(authorizeUrl, newCredential, Credential(..))
 import qualified Data.ByteString.Char8 as BS
 import Ftap.Transfer
+import Ftap.Formatter
 
 data Options = Options
                { isAuthorize :: Bool
@@ -17,6 +19,7 @@ data Options = Options
                , consumerSecret :: String
                , accessToken :: String
                , accessTokenSecret :: String
+               , isPrintHomeTimeline :: Bool
                }
              deriving (Show, Eq)
 
@@ -47,6 +50,7 @@ optionParser = popular defaultOptions $ \opts ->
       , consumerSecret = "CypWkvWfTJ6OFfyO15mgVj1HZh0h1Hy8oYgpjRWaQ"
       , accessToken = error "access token wasn't given."
       , accessTokenSecret = error "access token secret wasn't given."
+      , isPrintHomeTimeline = False
         }
 
 printUsage :: IO ()
@@ -73,4 +77,6 @@ main' opts = do
   let cnsm = mkConsumer (BS.pack $ consumerKey opts) (BS.pack $ consumerSecret opts)
       cred = newCredential (BS.pack $ accessToken opts) (BS.pack $ accessTokenSecret opts)
   json <- fetchHomeTL cnsm cred
-  print json
+  forM (formatStatuses json) $ \str -> do
+    putStrLn str
+  return ()
