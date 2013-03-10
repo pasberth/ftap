@@ -34,7 +34,11 @@ optionParser = popular defaultOptions $ \opts ->
   (\tkn scrt -> opts {
       accessToken = tkn
     , accessTokenSecret = scrt
-      }) <$ keyword "--access-token" <*> argument <*> argument
+      }) <$ keyword "--access-token" <*> argument <*> argument <|>
+  (\key scrt -> opts {
+      consumerKey = key
+    , consumerSecret = scrt
+      }) <$ keyword "--consumer-key" <*> argument <*> argument
   where
     defaultOptions = Options {
         isAuthorize = False
@@ -46,7 +50,8 @@ optionParser = popular defaultOptions $ \opts ->
 
 printUsage :: IO ()
 printUsage = do
-  putStr "Usage: ftap < --authorize | --access-token TOKEN SECRET >"
+  putStrLn "Usage: ftap < --authorize | --access-token TOKEN SECRET >"
+  putStrLn "            [ --consumer-key KEY SECRET ]"
 
 main' :: Options -> IO ()
 main' Options { isAuthorize = True, consumerKey, consumerSecret } = do
