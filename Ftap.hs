@@ -38,7 +38,8 @@ optionParser = popular defaultOptions $ \opts ->
   (\key scrt -> opts {
       consumerKey = key
     , consumerSecret = scrt
-      }) <$ keyword "--consumer-key" <*> argument <*> argument
+      }) <$ keyword "--consumer-key" <*> argument <*> argument <|>
+  opts { isPrintHomeTimeline = True } <$ keyword "--home-timeline"
   where
     defaultOptions = Options {
         isAuthorize = False
